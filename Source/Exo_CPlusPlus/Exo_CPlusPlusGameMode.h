@@ -1,0 +1,19 @@
+// Copyright Epic Games, Inc. All Rights Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/GameModeBase.h"
+#include "Exo_CPlusPlusGameMode.generated.h"
+
+UCLASS(minimalapi)
+class AExo_CPlusPlusGameMode : public AGameModeBase
+{
+	GENERATED_BODY()
+
+public:
+	AExo_CPlusPlusGameMode();
+};
+
+
+
