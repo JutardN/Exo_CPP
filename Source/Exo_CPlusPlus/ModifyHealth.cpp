@@ -1,0 +1,58 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "ModifyHealth.h"
+
+// Sets default values
+AModifyHealth::AModifyHealth()
+{
+ 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = false;
+	BoxTrigger = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollision"));
+	BoxTrigger->SetSimulatePhysics(false);
+	BoxTrigger->SetMobility(EComponentMobility::Static);
+	BoxTrigger->SetCollisionProfileName(TEXT("Trigger"));
+	RootComponent = BoxTrigger;
+	BoxTrigger->OnComponentBeginOverlap.AddDynamic(this, &AModifyHealth::OnOverlapBegin);
+
+	Light = CreateDefaultSubobject<UPointLightComponent>(TEXT("Light"));
+	Light->SetupAttachment(RootComponent);
+}
+
+// Called when the game starts or when spawned
+void AModifyHealth::BeginPlay()
+{
+	Super::BeginPlay();
+	if (amount > 0) {
+		Light->SetLightColor(FColor::Green);
+	}
+	else {
+		Light->SetLightColor(FColor::Red);
+	}
+}
+
+// Called every frame
+void AModifyHealth::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+}
+
+void AModifyHealth::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	AExo_CPlusPlusCharacter* player = Cast<AExo_CPlusPlusCharacter>(OtherActor);
+	if (!player)
+		return;
+	
+	player->health += amount;
+	if (player->health <= 0) {
+		player->health = 0;
+		player->Death();
+	}
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red,FString::Printf(TEXT("Player health : %d"),player->health));
+}
+
+void AModifyHealth::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+
+}
