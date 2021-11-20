@@ -13,6 +13,12 @@ class AExo_CPlusPlusGameMode : public AGameModeBase
 
 public:
 	AExo_CPlusPlusGameMode();
+	void Respawn(AController* controller);
+
+protected:
+	UFUNCTION()
+	void Spawn(AController* controller);
+	FTimerHandle RespawnHandle;
 };
 
 

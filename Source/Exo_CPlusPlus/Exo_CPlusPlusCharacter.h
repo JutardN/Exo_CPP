@@ -29,6 +29,19 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
 
+	UPROPERTY(EditAnywhere)
+	int health=100;
+
+	UPROPERTY(VisibleAnywhere)
+	bool isCrouching;
+
+
+	UFUNCTION()
+	void Death();
+
+	void PickUpObject();
+	void DropObject();
+
 protected:
 
 	/** Resets HMD orientation in VR. */
@@ -57,6 +70,11 @@ protected:
 
 	/** Handler for when a touch input stops. */
 	void TouchStopped(ETouchIndex::Type FingerIndex, FVector Location);
+
+	FTimerHandle RespawnHandle;
+private:
+	void StartCrouch();
+	void StopCrouching();
 
 protected:
 	// APawn interface

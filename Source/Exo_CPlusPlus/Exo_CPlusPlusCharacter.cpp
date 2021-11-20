@@ -1,6 +1,15 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "Exo_CPlusPlusCharacter.h"
+
+#include "GameFramework/Character.h"
+#include "Kismet/GameplayStatics.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "UObject/ConstructorHelpers.h"
+#include "TimerManager.h"
+#include "Engine/Engine.h"
+#include "Exo_CPlusPlusGameMode.h"
+
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -56,6 +65,10 @@ void AExo_CPlusPlusCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	check(PlayerInputComponent);
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+	PlayerInputComponent->BindAction("Crouch", IE_Pressed,this, &AExo_CPlusPlusCharacter::StartCrouch);
+	PlayerInputComponent->BindAction("Crouch", IE_Released,this, &AExo_CPlusPlusCharacter::StopCrouching);
+	PlayerInputComponent->BindAction("PickUp", IE_Pressed,this, &AExo_CPlusPlusCharacter::PickUpObject);
+	PlayerInputComponent->BindAction("PickUp", IE_Released,this, &AExo_CPlusPlusCharacter::DropObject);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AExo_CPlusPlusCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AExo_CPlusPlusCharacter::MoveRight);
@@ -91,6 +104,7 @@ void AExo_CPlusPlusCharacter::OnResetVR()
 void AExo_CPlusPlusCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)
 {
 		Jump();
+		isCrouching = false;
 }
 
 void AExo_CPlusPlusCharacter::TouchStopped(ETouchIndex::Type FingerIndex, FVector Location)
@@ -138,3 +152,46 @@ void AExo_CPlusPlusCharacter::MoveRight(float Value)
 		AddMovementInput(Direction, Value);
 	}
 }
+
+void AExo_CPlusPlusCharacter::StartCrouch() 
+{
+	isCrouching = true;
+	Crouch();
+}
+
+void AExo_CPlusPlusCharacter::StopCrouching() 
+{
+	isCrouching = false;
+	UnCrouch();
+}
+
+void AExo_CPlusPlusCharacter::Death() {
+
+	auto capsule = GetCapsuleComponent();
+	auto mesh = GetMesh();
+
+	GetCapsuleComponent()->DestroyComponent();
+	this->GetCharacterMovement()->DisableMovement();
+	capsule->SetCollisionProfileName("PhysicsActor");
+	mesh->SetCollisionProfileName("PhysicsActor");
+	mesh->SetSimulatePhysics(true);
+
+	APlayerController* controller= UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	controller->UnPossess();
+	
+	AGameModeBase* gameMode = GetWorld()->GetAuthGameMode();
+	if (AExo_CPlusPlusGameMode* GameMode = Cast<AExo_CPlusPlusGameMode>(gameMode)) {
+		GameMode->Respawn(controller);
+	}
+}
+
+void AExo_CPlusPlusCharacter::PickUpObject() 
+{
+
+}
+
+void AExo_CPlusPlusCharacter::DropObject() 
+{
+
+}
+
