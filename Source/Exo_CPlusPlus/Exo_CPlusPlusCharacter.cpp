@@ -9,6 +9,9 @@
 #include "TimerManager.h"
 #include "Engine/Engine.h"
 #include "Exo_CPlusPlusGameMode.h"
+#include "DrawDebugHelpers.h"
+#include "Components/SceneComponent.h"
+#include "Components/SphereComponent.h"
 
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Camera/CameraComponent.h"
@@ -68,7 +71,6 @@ void AExo_CPlusPlusCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed,this, &AExo_CPlusPlusCharacter::StartCrouch);
 	PlayerInputComponent->BindAction("Crouch", IE_Released,this, &AExo_CPlusPlusCharacter::StopCrouching);
 	PlayerInputComponent->BindAction("PickUp", IE_Pressed,this, &AExo_CPlusPlusCharacter::PickUpObject);
-	PlayerInputComponent->BindAction("PickUp", IE_Released,this, &AExo_CPlusPlusCharacter::DropObject);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AExo_CPlusPlusCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AExo_CPlusPlusCharacter::MoveRight);
@@ -175,23 +177,60 @@ void AExo_CPlusPlusCharacter::Death() {
 	capsule->SetCollisionProfileName("PhysicsActor");
 	mesh->SetCollisionProfileName("PhysicsActor");
 	mesh->SetSimulatePhysics(true);
-
+	DropObject();
 	APlayerController* controller= UGameplayStatics::GetPlayerController(GetWorld(), 0);
 	controller->UnPossess();
 	
 	AGameModeBase* gameMode = GetWorld()->GetAuthGameMode();
 	if (AExo_CPlusPlusGameMode* GameMode = Cast<AExo_CPlusPlusGameMode>(gameMode)) {
+		GetFollowCamera()->DestroyComponent();
+		GetCameraBoom()->DestroyComponent();
+		FollowCamera = NULL;
 		GameMode->Respawn(controller);
 	}
 }
 
 void AExo_CPlusPlusCharacter::PickUpObject() 
 {
+	if (!objectPicked) {
+		FVector Location;
+		FRotator Rotation;
+		
+		FVector Start = GetFollowCamera()->GetComponentLocation();
+		FVector End = Start + (GetFollowCamera()->GetForwardVector() * PickUpDistance);
+		FHitResult Hit;
 
+		FCollisionQueryParams TraceParam;
+		if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, TraceParam))
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Green, FString::Printf(TEXT("You are hitting: %s"), *Hit.GetActor()->GetName()));
+			DrawDebugLine(GetWorld(), Start, Hit.Location, FColor::Green, false, 5.0f);
+			if (Hit.GetComponent()->Mobility == EComponentMobility::Movable)
+			{
+				objectPicked = true;
+				Object = Hit.GetActor();
+				Object->FindComponentByClass<UStaticMeshComponent>()->SetSimulatePhysics(false);
+				Hit.GetActor()->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepWorldTransform);
+				Hit.GetActor()->SetActorLocation(GetCapsuleComponent()->GetRelativeLocation() + (GetCapsuleComponent()->GetForwardVector() * 150));
+			}
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, TEXT("You aren't hitting something"));
+			DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 5.0f);
+		}
+	}
+	else {
+		DropObject();
+	}
 }
 
 void AExo_CPlusPlusCharacter::DropObject() 
 {
-
+	if (Object) {
+		Object->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		Object->FindComponentByClass<UStaticMeshComponent>()->SetSimulatePhysics(true);
+		Object = NULL;
+		objectPicked = false;
+	}
 }
-

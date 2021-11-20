@@ -35,6 +35,11 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	bool isCrouching;
 
+	UPROPERTY(EditAnywhere)
+	float PickUpDistance = 500.0f;
+
+	bool objectPicked=false;
+	AActor* Object;
 
 	UFUNCTION()
 	void Death();
