@@ -3,6 +3,8 @@
 
 #include "ModifyHealth.h"
 #include "TimerManager.h"
+#include "Particles/ParticleSystem.h"
+#include "Particles/ParticleSystemComponent.h"
 
 
 // Sets default values
@@ -20,6 +22,12 @@ AModifyHealth::AModifyHealth()
 
 	Light = CreateDefaultSubobject<UPointLightComponent>(TEXT("Light"));
 	Light->SetupAttachment(RootComponent);
+
+	Fire = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Fire"));
+	Fire->SetupAttachment(RootComponent);
+	Fire->SetWorldRotation(FRotator(0,90,0));
+	static ConstructorHelpers::FObjectFinder<UParticleSystem>Particle(TEXT("ParticleSystem'/Game/StarterContent/Particles/P_Fire.P_Fire'"));
+	fireParticle = Particle.Object;
 }
 
 // Called when the game starts or when spawned
@@ -31,11 +39,11 @@ void AModifyHealth::BeginPlay()
 	}
 	else {
 		Light->SetLightColor(FColor::Red);
+		Fire->SetTemplate(fireParticle);
 	}
 
 	BoxTrigger->SetGenerateOverlapEvents(true);
 	BoxTrigger->OnComponentEndOverlap.AddDynamic(this, &AModifyHealth::OnOverlapEnd);
-
 }
 
 // Called every frame
@@ -69,13 +77,11 @@ void AModifyHealth::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, clas
 
 void AModifyHealth::ModifyOverTime(AExo_CPlusPlusCharacter* player)
 {
+	player->health += amount;
 	if (player->health <= 0) {
 		player->health = 0;
 		GetWorld()->GetTimerManager().ClearTimer(ModifyHandle);
 		player->Death();
-	}
-	else {
-		player->health += amount;
 	}
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Player health : %d"), player->health));
 }

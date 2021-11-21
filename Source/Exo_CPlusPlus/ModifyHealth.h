@@ -38,6 +38,10 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	UPointLightComponent* Light;
 
+	UPROPERTY(EditAnywhere)
+	UParticleSystemComponent* Fire;
+	UParticleSystem* fireParticle;
+
 	FTimerHandle ModifyHandle;
 
 	UFUNCTION()
