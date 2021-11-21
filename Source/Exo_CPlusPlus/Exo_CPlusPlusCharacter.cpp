@@ -12,6 +12,7 @@
 #include "DrawDebugHelpers.h"
 #include "Components/SceneComponent.h"
 #include "Components/SphereComponent.h"
+#include "Bullet.h"
 
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Camera/CameraComponent.h"
@@ -71,6 +72,7 @@ void AExo_CPlusPlusCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed,this, &AExo_CPlusPlusCharacter::StartCrouch);
 	PlayerInputComponent->BindAction("Crouch", IE_Released,this, &AExo_CPlusPlusCharacter::StopCrouching);
 	PlayerInputComponent->BindAction("PickUp", IE_Pressed,this, &AExo_CPlusPlusCharacter::PickUpObject);
+	PlayerInputComponent->BindAction("Shoot", IE_Pressed,this, &AExo_CPlusPlusCharacter::Shoot);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AExo_CPlusPlusCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AExo_CPlusPlusCharacter::MoveRight);
@@ -193,8 +195,6 @@ void AExo_CPlusPlusCharacter::Death() {
 void AExo_CPlusPlusCharacter::PickUpObject() 
 {
 	if (!objectPicked) {
-		FVector Location;
-		FRotator Rotation;
 		
 		FVector Start = GetFollowCamera()->GetComponentLocation();
 		FVector End = Start + (GetFollowCamera()->GetForwardVector() * PickUpDistance);
@@ -204,7 +204,7 @@ void AExo_CPlusPlusCharacter::PickUpObject()
 		if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, TraceParam))
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Green, FString::Printf(TEXT("You are hitting: %s"), *Hit.GetActor()->GetName()));
-			DrawDebugLine(GetWorld(), Start, Hit.Location, FColor::Green, false, 5.0f);
+			DrawDebugLine(GetWorld(), Start, Hit.Location, FColor::Green, false, 1.5f);
 			if (Hit.GetComponent()->Mobility == EComponentMobility::Movable)
 			{
 				objectPicked = true;
@@ -217,7 +217,7 @@ void AExo_CPlusPlusCharacter::PickUpObject()
 		else
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, TEXT("You aren't hitting something"));
-			DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 5.0f);
+			DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 1.5f);
 		}
 	}
 	else {
@@ -233,4 +233,16 @@ void AExo_CPlusPlusCharacter::DropObject()
 		Object = NULL;
 		objectPicked = false;
 	}
+}
+
+void AExo_CPlusPlusCharacter::Shoot() 
+{
+	FVector Location;
+	FRotator Rotation;
+	FActorSpawnParameters SpawnInfo;
+
+	Location = GetCapsuleComponent()->GetRelativeLocation() + (GetCapsuleComponent()->GetForwardVector() * 100);
+	Rotation = GetCapsuleComponent()->GetComponentRotation();
+
+	GetWorld()->SpawnActor<ABullet>(ABullet::StaticClass(), Location, Rotation, SpawnInfo);
 }

@@ -81,6 +81,8 @@ private:
 	void StartCrouch();
 	void StopCrouching();
 
+	void Shoot();
+
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
