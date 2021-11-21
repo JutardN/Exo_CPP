@@ -83,5 +83,8 @@ void AModifyHealth::ModifyOverTime(AExo_CPlusPlusCharacter* player)
 		GetWorld()->GetTimerManager().ClearTimer(ModifyHandle);
 		player->Death();
 	}
+	else if (player->health > 100) {
+		player->health = 100;
+	}
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Player health : %d"), player->health));
 }
