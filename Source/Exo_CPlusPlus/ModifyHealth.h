@@ -38,6 +38,10 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	UPointLightComponent* Light;
 
+	FTimerHandle ModifyHandle;
+
+	UFUNCTION()
+	void ModifyOverTime(AExo_CPlusPlusCharacter* player);
 
 private:
 	UFUNCTION()

@@ -2,6 +2,8 @@
 
 
 #include "ModifyHealth.h"
+#include "TimerManager.h"
+
 
 // Sets default values
 AModifyHealth::AModifyHealth()
@@ -13,6 +15,7 @@ AModifyHealth::AModifyHealth()
 	BoxTrigger->SetMobility(EComponentMobility::Static);
 	BoxTrigger->SetCollisionProfileName(TEXT("Trigger"));
 	RootComponent = BoxTrigger;
+
 	BoxTrigger->OnComponentBeginOverlap.AddDynamic(this, &AModifyHealth::OnOverlapBegin);
 
 	Light = CreateDefaultSubobject<UPointLightComponent>(TEXT("Light"));
@@ -29,6 +32,10 @@ void AModifyHealth::BeginPlay()
 	else {
 		Light->SetLightColor(FColor::Red);
 	}
+
+	BoxTrigger->SetGenerateOverlapEvents(true);
+	BoxTrigger->OnComponentEndOverlap.AddDynamic(this, &AModifyHealth::OnOverlapEnd);
+
 }
 
 // Called every frame
@@ -44,15 +51,31 @@ void AModifyHealth::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, cl
 	if (!player)
 		return;
 	
-	player->health += amount;
-	if (player->health <= 0) {
-		player->health = 0;
-		player->Death();
+	FTimerDelegate ModifyDele;
+	ModifyDele.BindUFunction(this, FName("ModifyOverTime"), player);
+	if (amount > 0) {
+		GetWorld()->GetTimerManager().SetTimer(ModifyHandle, ModifyDele, 1, true, 0);
 	}
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red,FString::Printf(TEXT("Player health : %d"),player->health));
+	else {
+		GetWorld()->GetTimerManager().SetTimer(ModifyHandle, ModifyDele, 0.5f, true,0);
+	}
+
 }
 
 void AModifyHealth::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+	GetWorld()->GetTimerManager().ClearTimer(ModifyHandle);
+}
 
+void AModifyHealth::ModifyOverTime(AExo_CPlusPlusCharacter* player)
+{
+	if (player->health <= 0) {
+		player->health = 0;
+		GetWorld()->GetTimerManager().ClearTimer(ModifyHandle);
+		player->Death();
+	}
+	else {
+		player->health += amount;
+	}
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Player health : %d"), player->health));
 }
