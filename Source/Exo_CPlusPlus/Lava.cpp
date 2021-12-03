@@ -1,9 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+#include "Lava.h"
+
 #include "Exo_CPlusPlusCharacter.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/BoxComponent.h"
-#include "Lava.h"
 
 // Sets default values
 ALava::ALava()

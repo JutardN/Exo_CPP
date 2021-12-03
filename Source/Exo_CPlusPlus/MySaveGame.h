@@ -13,7 +13,7 @@ class EXO_CPLUSPLUS_API UMySaveGame : public USaveGame
 
 public:
 	UPROPERTY()
-	FVector PlayerPosition;
+	FTransform PlayerPosition;
 
 	UMySaveGame();
 };
