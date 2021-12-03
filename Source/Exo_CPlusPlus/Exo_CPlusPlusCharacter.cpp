@@ -13,6 +13,8 @@
 #include "Components/SceneComponent.h"
 #include "Components/SphereComponent.h"
 #include "Bullet.h"
+#include "MySaveGame.h"
+#include "MyGameInstance.h"
 
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Camera/CameraComponent.h"
@@ -58,6 +60,7 @@ AExo_CPlusPlusCharacter::AExo_CPlusPlusCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -73,6 +76,9 @@ void AExo_CPlusPlusCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	PlayerInputComponent->BindAction("Crouch", IE_Released,this, &AExo_CPlusPlusCharacter::StopCrouching);
 	PlayerInputComponent->BindAction("PickUp", IE_Pressed,this, &AExo_CPlusPlusCharacter::PickUpObject);
 	PlayerInputComponent->BindAction("Shoot", IE_Pressed,this, &AExo_CPlusPlusCharacter::Shoot);
+
+	PlayerInputComponent->BindAction("Save", IE_Pressed, this, &AExo_CPlusPlusCharacter::SaveGame);
+	PlayerInputComponent->BindAction("Load", IE_Pressed, this, &AExo_CPlusPlusCharacter::LoadGame);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AExo_CPlusPlusCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AExo_CPlusPlusCharacter::MoveRight);
@@ -91,6 +97,10 @@ void AExo_CPlusPlusCharacter::SetupPlayerInputComponent(class UInputComponent* P
 
 	// VR headset functionality
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AExo_CPlusPlusCharacter::OnResetVR);
+	UMyGameInstance* GI = Cast<UMyGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+	if (GI->continueLevel) {
+		LoadGame();
+	}
 }
 
 
@@ -245,4 +255,22 @@ void AExo_CPlusPlusCharacter::Shoot()
 	Rotation = GetCapsuleComponent()->GetComponentRotation();
 
 	GetWorld()->SpawnActor<ABullet>(ABullet::StaticClass(), Location, Rotation, SpawnInfo);
+}
+
+void AExo_CPlusPlusCharacter::SaveGame() 
+{
+	UMySaveGame* SaveGameInstance = Cast<UMySaveGame>(UGameplayStatics::CreateSaveGameObject(UMySaveGame::StaticClass()));
+	SaveGameInstance->PlayerPosition = this->GetActorTransform();
+	UGameplayStatics::SaveGameToSlot(SaveGameInstance, TEXT("MySlot"), 0);
+
+	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, TEXT("Game Saved"));
+}
+
+void AExo_CPlusPlusCharacter::LoadGame() 
+{
+	UMySaveGame* SaveGameInstance = Cast<UMySaveGame>(UGameplayStatics::CreateSaveGameObject(UMySaveGame::StaticClass()));
+	SaveGameInstance = Cast<UMySaveGame>(UGameplayStatics::LoadGameFromSlot("MySlot", 0));
+	this->SetActorLocation(SaveGameInstance->PlayerPosition.GetLocation());
+	this->SetActorRotation(SaveGameInstance->PlayerPosition.GetRotation());
+	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, TEXT("Game Load"));
 }

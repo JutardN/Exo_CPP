@@ -47,6 +47,11 @@ public:
 	void PickUpObject();
 	void DropObject();
 
+	UFUNCTION(BlueprintCallable, Category = "Setup")
+	void SaveGame();
+	UFUNCTION(BlueprintCallable, Category = "Setup")
+	void LoadGame();
+
 protected:
 
 	/** Resets HMD orientation in VR. */

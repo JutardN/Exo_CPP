@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "Kismet/GameplayStatics.h"
 #include "Exo_CPlusPlusGameMode.generated.h"
 
 UCLASS(minimalapi)
