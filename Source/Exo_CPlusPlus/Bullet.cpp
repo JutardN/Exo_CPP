@@ -79,7 +79,6 @@ void ABullet::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrim
 	}
 	
 	ADecalActor* decal = GetWorld()->SpawnActor<ADecalActor>(Hit.Location, Hit.ImpactNormal.Rotation());
-	decal->AttachToComponent(Hit.GetComponent(), FAttachmentTransformRules::KeepWorldTransform);
 	decal->SetActorRelativeRotation(Hit.ImpactNormal.Rotation());
 
 	if (decal)
@@ -88,6 +87,8 @@ void ABullet::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrim
 		decal->SetLifeSpan(2.0f);
 		decal->GetDecal()->DecalSize = FVector(30, 30, 30);
 	}
+	decal->AttachToComponent(Hit.GetComponent(), FAttachmentTransformRules::KeepWorldTransform);
+
 	UGameplayStatics::SpawnEmitterAtLocation(Hit.GetComponent(), ParticleToSpawn, Hit.Location, Hit.ImpactNormal.Rotation(), true);
 	
 	Destroy();
