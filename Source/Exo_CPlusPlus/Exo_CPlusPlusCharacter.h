@@ -21,6 +21,8 @@ class AExo_CPlusPlusCharacter : public ACharacter
 public:
 	AExo_CPlusPlusCharacter();
 
+	virtual void Tick(float DeltaTime) override;
+
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseTurnRate;
@@ -29,8 +31,16 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Setup)
 	int health=100;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Setup)
+	int maxHealth=100;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Setup)
+	int strength=1;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Setup)
+	int defense=1;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Setup)
+	int gold=0;
 
 	UPROPERTY(VisibleAnywhere)
 	bool isCrouching;
@@ -41,6 +51,8 @@ public:
 	bool objectPicked=false;
 	AActor* Object;
 
+	bool isDead;
+	
 	UFUNCTION()
 	void Death();
 
@@ -51,6 +63,9 @@ public:
 	void SaveGame();
 	UFUNCTION(BlueprintCallable, Category = "Setup")
 	void LoadGame();
+
+	void StartRun();
+	void StopRun();
 
 protected:
 
@@ -87,7 +102,6 @@ private:
 	void StopCrouching();
 
 	void Shoot();
-
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;

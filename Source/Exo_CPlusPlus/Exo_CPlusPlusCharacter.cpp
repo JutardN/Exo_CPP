@@ -31,6 +31,7 @@ AExo_CPlusPlusCharacter::AExo_CPlusPlusCharacter()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
+	PrimaryActorTick.bCanEverTick = true;
 
 	// set our turn rates for input
 	BaseTurnRate = 45.f;
@@ -46,7 +47,8 @@ AExo_CPlusPlusCharacter::AExo_CPlusPlusCharacter()
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f); // ...at this rotation rate
 	GetCharacterMovement()->JumpZVelocity = 600.f;
 	GetCharacterMovement()->AirControl = 0.2f;
-	
+	GetCharacterMovement()->MaxWalkSpeed = 300;
+
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
@@ -72,6 +74,8 @@ void AExo_CPlusPlusCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	check(PlayerInputComponent);
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+	PlayerInputComponent->BindAction("Run", IE_Pressed, this, &AExo_CPlusPlusCharacter::StartRun);
+	PlayerInputComponent->BindAction("Run", IE_Released, this, &AExo_CPlusPlusCharacter::StopRun);
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed,this, &AExo_CPlusPlusCharacter::StartCrouch);
 	PlayerInputComponent->BindAction("Crouch", IE_Released,this, &AExo_CPlusPlusCharacter::StopCrouching);
 	PlayerInputComponent->BindAction("PickUp", IE_Pressed,this, &AExo_CPlusPlusCharacter::PickUpObject);
@@ -103,6 +107,14 @@ void AExo_CPlusPlusCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	}
 }
 
+void AExo_CPlusPlusCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	if (health <= 0 && !isDead) {
+		isDead = true;
+		Death();
+	}
+}
 
 void AExo_CPlusPlusCharacter::OnResetVR()
 {
@@ -177,6 +189,16 @@ void AExo_CPlusPlusCharacter::StopCrouching()
 {
 	isCrouching = false;
 	UnCrouch();
+}
+
+void AExo_CPlusPlusCharacter::StartRun() 
+{
+	GetCharacterMovement()->MaxWalkSpeed = 600;
+}
+
+void AExo_CPlusPlusCharacter::StopRun() 
+{
+	GetCharacterMovement()->MaxWalkSpeed = 300;
 }
 
 void AExo_CPlusPlusCharacter::Death() {

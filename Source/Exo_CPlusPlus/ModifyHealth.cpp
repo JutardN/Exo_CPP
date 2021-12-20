@@ -79,9 +79,7 @@ void AModifyHealth::ModifyOverTime(AExo_CPlusPlusCharacter* player)
 {
 	player->health += amount;
 	if (player->health <= 0) {
-		player->health = 0;
 		GetWorld()->GetTimerManager().ClearTimer(ModifyHandle);
-		player->Death();
 	}
 	else if (player->health > 100) {
 		player->health = 100;
